@@ -1,3 +1,4 @@
 ﻿  backend.cpp
-E:\CPUSced_git\backend\backend\backend.cpp(121,43): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-  backend.vcxproj -> E:\CPUSced_git\backend\x64\Debug\backend.exe
+C:\Users\kiro3\OneDrive\Desktop\computer eng\Operaing System\backend\backend\backend.cpp(134,43): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\kiro3\OneDrive\Desktop\computer eng\Operaing System\backend\backend\backend.cpp(212,47): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+  backend.vcxproj -> C:\Users\kiro3\OneDrive\Desktop\computer eng\Operaing System\backend\x64\Debug\backend.exe
