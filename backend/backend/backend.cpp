@@ -38,6 +38,14 @@ public:
         tuple<float, float > interval= make_tuple(start_time, end_time);
         schedule.push_back(interval);
     }
+    void showIntervals() {
+        if (!schedule.empty()) {
+            for (int i = 0; i < schedule.size(); i++) {
+                cout << "Start: " <<get<0>(schedule[i])<< endl;
+                cout << "End: " << get<1>(schedule[i]) << endl;
+            }
+        }
+    }
     float getArrivalTime() {
         return arrival_time;
     };
@@ -115,10 +123,11 @@ public:
         float burst = ready_vec[0].getBurstTime();
         if (ready_vec[0].getFinished()) {
             ready_vec[0].addIntervalOfTime(start, start + burst);
+            ready_vec[0].showIntervals();
             ready_vec.erase(ready_vec.begin());
             
             if (!ready_vec.empty()) {
-                ready_vec[0].setStartTime(time);
+                ready_vec[0].setStartTime(time+1);
             }
         }
     }
