@@ -5,6 +5,7 @@
 #include <windows.h>
 #include <vector>
 #include <tuple>
+#include <algorithm>
 using namespace std;
 class process {
 protected:
@@ -15,9 +16,9 @@ protected:
     float start_time;
     float burst_time;
     float remaining_time;
-    vector<tuple<float, float>> schedule; // each tuple has a start and an endtime
+   
 
-public:
+public: vector<tuple<float, float>> schedule; // each tuple has a start and an endtime
     process(string name, float arrival_time, float burst_time, int priority) {
         this->name = name;
         this->arrival_time = arrival_time;
@@ -72,6 +73,8 @@ class algorithm {
 public:
     virtual void updateProcesses(process& proc, int time) = 0; //to be overridden
     virtual void updateReadyQ(vector<process>& ready_vec, int time) = 0;  //to be overridden
+	virtual void initReadyQ(vector<process>& ready_vec)=0 ; //to be overridden
+    virtual void sortReadyQ(vector<process>& ready_vec,int time)=0; //to be overridden
 };
 class scheduler {
     string ID;
@@ -80,19 +83,29 @@ class scheduler {
 public:
     void inProgress(algorithm& algo) {
         int time = 0;
+        algo.initReadyQ(ready_queue);
         ready_queue[0].setStartTime(0);
-        while (true) {
+        Sleep(1000); //wait 1 sec
+        time++;
+        while (time < 20) {
             cout << "Time is: " << time << endl;
             if (!ready_queue.empty()) {
-                algo.updateProcesses(ready_queue[0], time);
-                cout << ready_queue[0].getName() << endl;
+
                 
-                algo.updateReadyQ(ready_queue, time);
-                //update their time left
-                //check if a new process was added
+
+                    algo.updateProcesses(ready_queue[0], time);
+                    algo.sortReadyQ(ready_queue,time);
+               
+                    //cout << ready_queue[0].getName() << endl;
+                    algo.updateReadyQ(ready_queue, time);
+
+                    //update their time left
+                    //check if a new process was added
+
+                
                 Sleep(1000); //wait 1 sec 
+                time++;
             }
-            time++;
         }
     }
     process getRunningProcess() {
@@ -131,35 +144,117 @@ public:
             }
         }
     }
+	void initReadyQ(vector<process>& ready_vec) {
+		sort(ready_vec.begin(), ready_vec.end(), [](process& a, process& b) {
+			return a.getArrivalTime() < b.getArrivalTime();
+			});
+	}
+	void sortReadyQ(vector<process>& ready_vec, int time) {
+		process* before = &ready_vec[0];
+		sort(ready_vec.begin(), ready_vec.end(), [](process& a, process& b) {
+			return a.getArrivalTime() < b.getArrivalTime();
+			});
+		process* after = &ready_vec[0];
+		if (before != after) {
+		}
+		else {
+			cout << "Not Sorted" << endl;
+		}
+	}
 
 };
 
 class SJF : public algorithm {
-};
+public:
+    void initReadyQ(vector<process>& ready_vec) {
+        sort(ready_vec.begin(), ready_vec.end(), [](process& a, process& b) {
+            if (a.getArrivalTime() != b.getArrivalTime()) {
 
-class Priority : public algorithm {
-};
-
-class RR : public algorithm {
-
-};
-int main()
-{
-    process p1 = process("p1", 0, 2, 0);
-    process p2 = process("p2", 0, 4, 0);
-    process p3 = process("p3", 1, 1, 0);
-    scheduler sched;
-    sched.addProcess(p1);
-    sched.addProcess(p2);
-    sched.addProcess(p3);
-    int in;
-    cout << "Please Enter the Algo";
-    cin >> in;
-    FCFS fcfs;
-    switch (in) {
-    case 0: sched.inProgress(fcfs);
-        break;
+                return a.getArrivalTime() < b.getArrivalTime();
+            }
+            else {
+                return a.getRemainingTime() < b.getRemainingTime();
+            }
+            });
 
     }
-    return 0;
-}
+    void sortReadyQ(vector<process>& ready_vec,int time) {
+       /* process* before = &ready_vec[0];
+
+        sort(ready_vec.begin(), ready_vec.end(), [](process& a, process& b) {
+            if (a.getArrivalTime() != b.getArrivalTime()) {
+
+                return a.getArrivalTime() < b.getArrivalTime();
+            }
+            else {
+                return a.getRemainingTime() < b.getRemainingTime();
+            }
+            });
+
+        process* after = &ready_vec[0];
+        if (before != after) {
+
+        }
+        else {
+            cout << "Not Sorted" << endl;
+        }*/
+    }
+        void updateProcesses(process & proc, int time) {
+            float start = proc.getStartTime();
+            float burst = proc.getBurstTime();
+            proc.setRemainingTime(proc.getRemainingTime() - 1);
+            //cout << "rem: " << proc.getRemainingTime() << endl;
+            if (proc.getRemainingTime() == 0) {
+                //cout << "Finished"<<endl;
+                proc.setFinished(true);
+                //cout <<"Finished ;"<<proc.getFinished() << endl;
+            }
+        }
+        void updateReadyQ(vector<process>&ready_vec, int time) {
+            float start = ready_vec[0].getStartTime();
+            float burst = ready_vec[0].getBurstTime();
+            if (ready_vec[0].getFinished()) {
+                ready_vec[0].addIntervalOfTime(start, start + burst);
+                ready_vec.erase(ready_vec.begin());
+
+                if (!ready_vec.empty()) {
+                    ready_vec[0].setStartTime(time);
+                }
+            }
+        }
+
+
+    };
+
+    class Priority : public algorithm {
+    };
+
+    class RR : public algorithm {
+
+    };
+    int main()
+    {
+        process p1 = process("p1", 0, 2, 0);
+        process p2 = process("p2", 0, 4, 0);
+        process p3 = process("p3", 1, 1, 0);
+        scheduler sched;
+        sched.addProcess(p1);
+        sched.addProcess(p2);
+        sched.addProcess(p3);
+        int in;
+        cout << "Please Enter the Algo";
+        cin >> in;
+        FCFS fcfs;
+        SJF sjf;
+
+
+        switch (in) {
+       // case 0: sched.inProgress(fcfs);
+            break;
+        case 1: sched.inProgress(sjf);
+
+        }
+        cout << get<0>(p1.schedule[0]) << " " << get<1>(p1.schedule[0]);
+        return 0;
+    }
+
