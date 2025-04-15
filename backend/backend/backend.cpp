@@ -85,24 +85,19 @@ public:
         int time = 0;
         algo.initReadyQ(ready_queue);
         ready_queue[0].setStartTime(0);
-        Sleep(1000); //wait 1 sec
-        time++;
-        while (time < 20) {
+        
+        while (time < 7) {
             cout << "Time is: " << time << endl;
             if (!ready_queue.empty()) {
-
-                
 
                     algo.updateProcesses(ready_queue[0], time);
                     algo.sortReadyQ(ready_queue,time);
                
-                    //cout << ready_queue[0].getName() << endl;
+                    cout << ready_queue[0].getName() << endl;
                     algo.updateReadyQ(ready_queue, time);
 
-                    //update their time left
                     //check if a new process was added
 
-                
                 Sleep(1000); //wait 1 sec 
                 time++;
             }
@@ -249,9 +244,10 @@ public:
 
 
         switch (in) {
-       // case 0: sched.inProgress(fcfs);
+        case 0: sched.inProgress(fcfs);
             break;
         case 1: sched.inProgress(sjf);
+            break;
 
         }
         cout << get<0>(p1.schedule[0]) << " " << get<1>(p1.schedule[0]);
