@@ -1,256 +1,193 @@
-// backend.cpp : This file contains the 'main' function. Program execution begins and ends there.
-//
+#include "header.h"
 
-#include <iostream>
-#include <windows.h>
-#include <vector>
-#include <tuple>
-#include <algorithm>
-using namespace std;
-class process {
-protected:
-    string name;
-    bool finished= false;
-    int priority;
-    float arrival_time;
-    float start_time;
-    float burst_time;
-    float remaining_time;
-   
+// Process class implementation
+void myprocess::setRemainingTime(float remaining_time) {
+    this->remaining_time = remaining_time;
+}
 
-public: vector<tuple<float, float>> schedule; // each tuple has a start and an endtime
-    process(string name, float arrival_time, float burst_time, int priority) {
-        this->name = name;
-        this->arrival_time = arrival_time;
-        this->burst_time = burst_time;
-        remaining_time = burst_time;
-        this->priority = priority;
-    }
-    void setRemainingTime(float remaining_time) {
-        this->remaining_time = remaining_time;
-    }
-    void setFinished(bool TF) {
-        this->finished = TF;
-    }
-    void setStartTime(float start_time) {
-        this->start_time = start_time;
-    }
-    void addIntervalOfTime(float start_time, float end_time) {
-        tuple<float, float > interval= make_tuple(start_time, end_time);
-        schedule.push_back(interval);
-    }
-    void showIntervals() {
-        if (!schedule.empty()) {
-            for (int i = 0; i < schedule.size(); i++) {
-                cout << "Start: " <<get<0>(schedule[i])<< endl;
-                cout << "End: " << get<1>(schedule[i]) << endl;
-            }
+void myprocess::setFinished(bool TF) {
+    this->finished = TF;
+}
+
+void myprocess::setStartTime(float start_time) {
+    this->start_time = start_time;
+}
+
+void myprocess::addIntervalOfTime(float start_time, float end_time) {
+    tuple<float, float> interval = make_tuple(start_time, end_time);
+    schedule.push_back(interval);
+}
+
+void myprocess::showIntervals() {
+    if (!schedule.empty()) {
+        for (int i = 0; i < schedule.size(); i++) {
+            cout << "Start: " << get<0>(schedule[i]) << endl;
+            cout << "End: " << get<1>(schedule[i]) << endl;
         }
     }
-    float getArrivalTime() {
-        return arrival_time;
-    };
-    float getBurstTime() {
-        return burst_time;
-    }
-    float getRemainingTime() {
-        return remaining_time;
-    }
-    float getStartTime() {
-        return start_time;
-    }
-    bool getFinished() {
-        return finished;
-    }
-    string getName() {
-        return name;
-    }
-};
+}
 
-class algorithm {
-    bool preemptive;
-    bool priority;
-public:
-    virtual void updateProcesses(process& proc, int time) = 0; //to be overridden
-    virtual void updateReadyQ(vector<process>& ready_vec, int time) = 0;  //to be overridden
-	virtual void initReadyQ(vector<process>& ready_vec)=0 ; //to be overridden
-    virtual void sortReadyQ(vector<process>& ready_vec,int time)=0; //to be overridden
-};
-class scheduler {
-    string ID;
-    vector <process> processes; // vector of all process objects
-    vector <process> ready_queue;// 1st element gets CPU
-public:
-    void inProgress(algorithm& algo) {
-        int time = 0;
-        algo.initReadyQ(ready_queue);
-        ready_queue[0].setStartTime(0);
-        
-        while (time < 7) {
-            cout << "Time is: " << time << endl;
-            if (!ready_queue.empty()) {
+float myprocess::getArrivalTime() {
+    return arrival_time;
+}
 
-                    algo.updateProcesses(ready_queue[0], time);
-                    algo.sortReadyQ(ready_queue,time);
-               
-                    cout << ready_queue[0].getName() << endl;
-                    algo.updateReadyQ(ready_queue, time);
+float myprocess::getBurstTime() {
+    return burst_time;
+}
 
-                    //check if a new process was added
+float myprocess::getRemainingTime() {
+    return remaining_time;
+}
 
-                Sleep(1000); //wait 1 sec 
-                time++;
-            }
+float myprocess::getStartTime() {
+    return start_time;
+}
+
+bool myprocess::getFinished() {
+    return finished;
+}
+
+string myprocess::getName() {
+    return name;
+}
+
+// Scheduler class implementation
+void scheduler::inProgress(algorithm& algo) {
+    int time = 0;
+    algo.initReadyQ(ready_queue);
+    ready_queue[0].setStartTime(0);
+
+    while (time < 7) {
+        cout << "Time is: " << time << endl;
+        if (!ready_queue.empty()) {
+            cout << "heere " << endl; 
+            algo.updateProcesses(ready_queue[0], time);
+            //algo.sortReadyQ(ready_queue, time);
+
+            cout << ready_queue[0].getName() << endl;
+            algo.updateReadyQ(ready_queue, time);
+
+            Sleep(1000); //wait 1 sec 
+            time++;
         }
     }
-    process getRunningProcess() {
-        return ready_queue[0];
-    }
-    void addProcess(process p) {
-        processes.push_back(p);
-        ready_queue.push_back(p);
-    }
-};
+}
 
-class FCFS : public algorithm {
-public:
-    void updateProcesses(process& proc, int time) {
-        float start = proc.getStartTime();
-        float burst = proc.getBurstTime();
-        proc.setRemainingTime(proc.getRemainingTime() - 1);
-        
-        cout << "rem: " << proc.getRemainingTime() << endl;
-        if (proc.getRemainingTime() == 0) {
-            //cout << "Finished"<<endl;
-            proc.setFinished(true);
-            //cout <<"Finished ;"<<proc.getFinished() << endl;
-        }
+myprocess scheduler::getRunningProcess() {
+    return ready_queue[0];
+}
+
+void scheduler::addProcess(myprocess p) {
+    processes.push_back(p);
+    ready_queue.push_back(p);
+}
+
+// FCFS algorithm implementation
+void FCFS::updateProcesses(myprocess& proc, int time) {
+    float start = proc.getStartTime();
+    float burst = proc.getBurstTime();
+    proc.setRemainingTime(proc.getRemainingTime() - 1);
+
+    cout << "rem: " << proc.getRemainingTime() << endl;
+    if (proc.getRemainingTime() == 0) {
+        proc.setFinished(true);
     }
-    void updateReadyQ(vector<process>& ready_vec, int time) {
-        float start = ready_vec[0].getStartTime();
-        float burst = ready_vec[0].getBurstTime();
+}
+
+void FCFS::updateReadyQ(vector<myprocess>& ready_vec, int time) {
+    float start = ready_vec[0].getStartTime();
+    float burst = ready_vec[0].getBurstTime();
+    if (!ready_vec.empty()) {
+
         if (ready_vec[0].getFinished()) {
             ready_vec[0].addIntervalOfTime(start, start + burst);
             ready_vec[0].showIntervals();
             ready_vec.erase(ready_vec.begin());
-            
+
             if (!ready_vec.empty()) {
-                ready_vec[0].setStartTime(time+1);
+                ready_vec[0].setStartTime(time + 1);
             }
         }
     }
-	void initReadyQ(vector<process>& ready_vec) {
-		sort(ready_vec.begin(), ready_vec.end(), [](process& a, process& b) {
-			return a.getArrivalTime() < b.getArrivalTime();
-			});
-	}
-	void sortReadyQ(vector<process>& ready_vec, int time) {
-		process* before = &ready_vec[0];
-		sort(ready_vec.begin(), ready_vec.end(), [](process& a, process& b) {
-			return a.getArrivalTime() < b.getArrivalTime();
-			});
-		process* after = &ready_vec[0];
-		if (before != after) {
-		}
-		else {
-			cout << "Not Sorted" << endl;
-		}
-	}
+}
 
-};
+void FCFS::initReadyQ(vector<myprocess>& ready_vec) {
+    sort(ready_vec.begin(), ready_vec.end(), [](myprocess& a, myprocess& b) {
+        return a.getArrivalTime() < b.getArrivalTime();
+        });
+}
 
-class SJF : public algorithm {
-public:
-    void initReadyQ(vector<process>& ready_vec) {
-        sort(ready_vec.begin(), ready_vec.end(), [](process& a, process& b) {
-            if (a.getArrivalTime() != b.getArrivalTime()) {
-
-                return a.getArrivalTime() < b.getArrivalTime();
-            }
-            else {
-                return a.getRemainingTime() < b.getRemainingTime();
-            }
-            });
-
+void FCFS::sortReadyQ(vector<myprocess>& ready_vec, int time) {
+    myprocess* before = &ready_vec[0];
+    sort(ready_vec.begin(), ready_vec.end(), [](myprocess& a, myprocess& b) {
+        return a.getArrivalTime() < b.getArrivalTime();
+        });
+    myprocess* after = &ready_vec[0];
+    if (before != after) {
     }
-    void sortReadyQ(vector<process>& ready_vec,int time) {
-       /* process* before = &ready_vec[0];
+    else {
+        cout << "Not Sorted" << endl;
+    }
+}
 
-        sort(ready_vec.begin(), ready_vec.end(), [](process& a, process& b) {
-            if (a.getArrivalTime() != b.getArrivalTime()) {
-
-                return a.getArrivalTime() < b.getArrivalTime();
-            }
-            else {
-                return a.getRemainingTime() < b.getRemainingTime();
-            }
-            });
-
-        process* after = &ready_vec[0];
-        if (before != after) {
-
+// SJF algorithm implementation
+void SJF::initReadyQ(vector<myprocess>& ready_vec) {
+    sort(ready_vec.begin(), ready_vec.end(), [](myprocess& a, myprocess& b) {
+        if (a.getArrivalTime() != b.getArrivalTime()) {
+            return a.getArrivalTime() < b.getArrivalTime();
         }
         else {
-            cout << "Not Sorted" << endl;
-        }*/
+            return a.getRemainingTime() < b.getRemainingTime();
+        }
+        });
+}
+
+void SJF::sortReadyQ(vector<myprocess>& ready_vec, int time) {
+    // Sorting logic can be added here if needed
+}
+
+void SJF::updateProcesses(myprocess& proc, int time) {
+    float start = proc.getStartTime();
+    float burst = proc.getBurstTime();
+    proc.setRemainingTime(proc.getRemainingTime() - 1);
+    if (proc.getRemainingTime() == 0) {
+        proc.setFinished(true);
     }
-        void updateProcesses(process & proc, int time) {
-            float start = proc.getStartTime();
-            float burst = proc.getBurstTime();
-            proc.setRemainingTime(proc.getRemainingTime() - 1);
-            //cout << "rem: " << proc.getRemainingTime() << endl;
-            if (proc.getRemainingTime() == 0) {
-                //cout << "Finished"<<endl;
-                proc.setFinished(true);
-                //cout <<"Finished ;"<<proc.getFinished() << endl;
-            }
+}
+
+void SJF::updateReadyQ(vector<myprocess>& ready_vec, int time) {
+    float start = ready_vec[0].getStartTime();
+    float burst = ready_vec[0].getBurstTime();
+    if (ready_vec[0].getFinished()) {
+        ready_vec[0].addIntervalOfTime(start, start + burst);
+        ready_vec.erase(ready_vec.begin());
+
+        if (!ready_vec.empty()) {
+            ready_vec[0].setStartTime(time);
         }
-        void updateReadyQ(vector<process>&ready_vec, int time) {
-            float start = ready_vec[0].getStartTime();
-            float burst = ready_vec[0].getBurstTime();
-            if (ready_vec[0].getFinished()) {
-                ready_vec[0].addIntervalOfTime(start, start + burst);
-                ready_vec.erase(ready_vec.begin());
-
-                if (!ready_vec.empty()) {
-                    ready_vec[0].setStartTime(time);
-                }
-            }
-        }
-
-
-    };
-
-    class Priority : public algorithm {
-    };
-
-    class RR : public algorithm {
-
-    };
-    int main()
-    {
-        process p1 = process("p1", 0, 2, 0);
-        process p2 = process("p2", 0, 4, 0);
-        process p3 = process("p3", 1, 1, 0);
-        scheduler sched;
-        sched.addProcess(p1);
-        sched.addProcess(p2);
-        sched.addProcess(p3);
-        int in;
-        cout << "Please Enter the Algo";
-        cin >> in;
-        FCFS fcfs;
-        SJF sjf;
-
-
-        switch (in) {
-        case 0: sched.inProgress(fcfs);
-            break;
-        case 1: sched.inProgress(sjf);
-            break;
-
-        }
-        cout << get<0>(p1.schedule[0]) << " " << get<1>(p1.schedule[0]);
-        return 0;
     }
+}
 
+int main() {
+    myprocess p1 = myprocess("p1", 0, 2, 0);
+    myprocess p2 = myprocess("p2", 0, 4, 0);
+    myprocess p3 = myprocess("p3", 1, 1, 0);
+    scheduler sched;
+    sched.addProcess(p1);
+    sched.addProcess(p2);
+    sched.addProcess(p3);
+    int in;
+    cout << "Please Enter the Algo";
+    cin >> in;
+    FCFS fcfs;
+    SJF sjf;
+
+    switch (in) {
+    case 0: sched.inProgress(fcfs);
+        break;
+    case 1: sched.inProgress(sjf);
+        break;
+    }
+    //cout << get<0>(p1.schedule[0]) << " " << get<1>(p1.schedule[0]);
+    return 0;
+}
