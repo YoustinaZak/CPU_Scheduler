@@ -5,7 +5,7 @@
 #include <tuple>
 #include <algorithm>
 using namespace std;
-class myprocess {
+class process {
 protected:
     string name;
     bool finished = false;
@@ -18,7 +18,7 @@ protected:
 
 public: 
       vector<tuple<float, float>> schedule; // each tuple has a start and an endtime
-      myprocess(string name, float arrival_time, float burst_time, int priority) {
+      process(string name, float arrival_time, float burst_time, int priority) {
 		  this->name = name;
 		  this->arrival_time = arrival_time;
 		  this->burst_time = burst_time;
@@ -42,42 +42,42 @@ void setRemainingTime(float remaining_time);
 };
 
 class algorithm {
-    bool preemptive;
+    
     
 public:
-    virtual void updateProcesses(myprocess& proc, int time) = 0; //to be overridden
-    virtual void updateReadyQ(vector<myprocess>& ready_vec, int time) = 0;  //to be overridden
-    virtual void initReadyQ(vector<myprocess>& ready_vec) = 0; //to be overridden
-    virtual void sortReadyQ(vector<myprocess>& ready_vec, int time) = 0; //to be overridden
+   bool preemptive;
+
+      virtual void updateProcesses(process * proc, int time) = 0; //to be overridden
+    virtual void updateReadyQ(vector<process *> &ready_vec, int time) = 0;  //to be overridden
+	virtual void initReadyQ(vector<process *>& ready_vec)=0 ; //to be overridden
 };
 class scheduler {
 protected:
     string ID;
-    vector <myprocess> processes; // vector of all process objects
-    vector <myprocess> ready_queue;// 1st element gets CPU
-public:
-    void inProgress(algorithm& algo);
-    myprocess getRunningProcess();
     
-    void addProcess(myprocess p);
+    vector <process*> ready_queue;// 1st element gets CPU
+public:
+    vector <process*> processes; // vector of all process objects
+    void inProgress(algorithm& algo);
+    process* getRunningProcess();
+    
+    void addProcess(process* p);
 };
 
 class FCFS : public algorithm {
 public:
-    void updateProcesses(myprocess& proc, int time);
-    void updateReadyQ(vector<myprocess>& ready_vec, int time);
-    void initReadyQ(vector<myprocess>& ready_vec);
-    void sortReadyQ(vector<myprocess>& ready_vec, int time);
+    void updateProcesses(process* proc, int time);
+    void updateReadyQ(vector<process* >& ready_vec, int time);
+    void initReadyQ(vector<process*>& ready_vec);
+   
 
 };
 
 class SJF : public algorithm {
 public:
-    void initReadyQ(vector<myprocess>& ready_vec);
-    void sortReadyQ(vector<myprocess>& ready_vec, int time);
-    void updateProcesses(myprocess& proc, int time);
-    void updateReadyQ(vector<myprocess>& ready_vec, int time);
-
+    void updateProcesses(process* proc, int time);
+    void updateReadyQ(vector<process* >& ready_vec, int time);
+    void initReadyQ(vector<process*>& ready_vec);
 
 };
 
@@ -85,6 +85,11 @@ class Priority : public algorithm {
 };
 
 class RR : public algorithm {
-
+public:
+    int quantum = 2;
+    int rem_q = quantum;
+    void updateProcesses(process* proc, int time);
+    void updateReadyQ(vector<process* >& ready_vec, int time);
+    void initReadyQ(vector<process*>& ready_vec);
 };
 
