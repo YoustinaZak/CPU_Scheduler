@@ -13,6 +13,10 @@ void process::setStartTime(float start_time) {
 	this->start_time = start_time;
 }
 
+void process:: setTurnAroundTime(float turnaround_time) {
+	this->turnaround_time = turnaround_time;
+}
+
 void process::addIntervalOfTime(float start_time, float end_time) {
 	tuple<float, float> interval = make_tuple(start_time, end_time);
 	schedule.push_back(interval);
@@ -43,6 +47,10 @@ float process::getStartTime() {
 	return start_time;
 }
 
+float process::getTurnAroundTime() {
+	return turnaround_time;
+}
+
 bool process::getFinished() {
 	return finished;
 }
@@ -56,6 +64,10 @@ void scheduler::inProgress(algorithm& algo) {
 	int time = 0;
 	algo.initReadyQ(ready_queue);
 	ready_queue[0]->setStartTime(0);
+	if (live)
+	{
+		Sleep(1000); //wait 1 sec
+	}
 	time++;
 	while (time < 20) {
 		cout << "Time is: " << time << endl;
@@ -80,7 +92,28 @@ void scheduler::inProgress(algorithm& algo) {
 		time++;
 	}
 }
-
+float scheduler::avgTurnAround() {
+	float sum = 0;
+	float turn = 0;
+	int size = processes.size();
+	for (int i = 0; i < size; i++) {
+		turn = get<1>(processes[i]->schedule.back()) - processes[i]->getArrivalTime();
+		sum += turn;
+		processes[i]->setTurnAroundTime(turn);
+	}
+	return sum / size;
+}
+float scheduler::avgWaiting() {
+	float sum = 0;
+	float wait =0;
+	int size = processes.size();
+	for (int i = 0; i < size; i++) {
+		wait = processes[i]->getTurnAroundTime() - processes[i]->getBurstTime();
+		cout << wait << endl;
+		sum += wait;
+	}
+	return sum / size;
+}
 
 process* scheduler::getRunningProcess() {
 	return ready_queue[0];
@@ -349,6 +382,8 @@ int main() {
 			cout << get<0>(sched.processes[i]->schedule[j]) << " " << get<1>(sched.processes[i]->schedule[j]) << endl;
 		}
 	}
+	cout << sched.avgTurnAround()<<endl;
+	cout << sched.avgWaiting() << endl;
 
 	return 0;
 }
