@@ -42,25 +42,23 @@ void setRemainingTime(float remaining_time);
 };
 
 class algorithm {
-    
-    
+  
 public:
    bool preemptive;
 
-      virtual void updateProcesses(process * proc, int time) = 0; //to be overridden
+    virtual void updateProcesses(process * proc, int time) = 0; //to be overridden
     virtual void updateReadyQ(vector<process *> &ready_vec, int time) = 0;  //to be overridden
 	virtual void initReadyQ(vector<process *>& ready_vec)=0 ; //to be overridden
 };
 class scheduler {
 protected:
     string ID;
-    
     vector <process*> ready_queue;// 1st element gets CPU
 public:
+    bool live;
     vector <process*> processes; // vector of all process objects
     void inProgress(algorithm& algo);
     process* getRunningProcess();
-    
     void addProcess(process* p);
 };
 
@@ -82,6 +80,10 @@ public:
 };
 
 class Priority : public algorithm {
+public:
+    void updateProcesses(process* proc, int time);
+    void updateReadyQ(vector<process* >& ready_vec, int time);
+    void initReadyQ(vector<process*>& ready_vec);
 };
 
 class RR : public algorithm {
