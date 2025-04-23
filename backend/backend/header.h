@@ -36,6 +36,7 @@ void setRemainingTime(float remaining_time);
       float getBurstTime();
       float getRemainingTime();
       float getStartTime();
+	  int getPriority() { return priority; }
       bool getFinished();
       string getName();
       
@@ -58,6 +59,7 @@ protected:
     vector <process*> ready_queue;// 1st element gets CPU
 public:
     vector <process*> processes; // vector of all process objects
+    vector<process*> incoming;
     void inProgress(algorithm& algo);
     process* getRunningProcess();
     
@@ -82,6 +84,10 @@ public:
 };
 
 class Priority : public algorithm {
+public:
+	void updateProcesses(process* proc, int time);
+	void updateReadyQ(vector<process* >& ready_vec, int time);
+	void initReadyQ(vector<process*>& ready_vec);
 };
 
 class RR : public algorithm {

@@ -55,6 +55,14 @@ string process::getName() {
 void scheduler::inProgress(algorithm& algo) {
     
     int time = 0;
+    for (int i = 0;i<incoming.size();i++) {           //push the arrived process in ready queue
+		process* p = incoming[i];
+		if (p->getArrivalTime() == time) {
+			ready_queue.push_back(p);
+			incoming.erase(incoming.begin()+i);
+            i--;
+		}
+	}
     algo.initReadyQ(ready_queue);
     ready_queue[0]->setStartTime(0);
     //Sleep(1000); //wait 1 sec
@@ -65,9 +73,16 @@ void scheduler::inProgress(algorithm& algo) {
 
             if (time == 1)
             {
-                process* p3 = new process("p3", time, 1, 0);
-                this->addProcess(p3);
+              
 
+            }
+            for (int i = 0;i < incoming.size();i++) {           //push the arrived process in ready queue
+                process* p = incoming[i];
+                if (p->getArrivalTime() == time) {
+                    ready_queue.push_back(p);
+                    incoming.erase(incoming.begin() + i);
+                    i--;
+                }
             }
 
             algo.updateProcesses(ready_queue[0], time);
@@ -93,7 +108,7 @@ process* scheduler::getRunningProcess() {
 
 void scheduler::addProcess(process* p) {
     processes.push_back(p);
-    ready_queue.push_back(p);
+    incoming.push_back(p);
 }
 
 // FCFS algorithm implementation
@@ -300,18 +315,104 @@ void RR::updateReadyQ(vector<process*>& ready_vec, int time) {
     }
 }
 
+void Priority::initReadyQ(vector<process*>& ready_vec) {
+    sort(ready_vec.begin(), ready_vec.end(), [](process* a, process* b) {
+
+
+
+        return a->getPriority() < b->getPriority();
+        }
+    );
+}
+void Priority::updateProcesses(process* proc, int time) {
+    float start = proc->getStartTime();
+    float burst = proc->getBurstTime();
+    proc->setRemainingTime(proc->getRemainingTime() - 1);
+    //cout << "rem: " << proc.getRemainingTime() << endl;
+    if (proc->getRemainingTime() == 0) {
+        //cout << "Finished"<<endl;
+        proc->setFinished(true);
+        //cout <<"Finished ;"<<proc.getFinished() << endl;
+    }
+}
+void Priority::updateReadyQ(vector<process*>& ready_vec, int time) {
+    //checking finished or not
+    float start = ready_vec[0]->getStartTime();
+    float burst = ready_vec[0]->getBurstTime();
+    bool erased = false;
+    if (ready_vec[0]->getFinished()) {
+        ready_vec[0]->addIntervalOfTime(start, time);
+        ready_vec.erase(ready_vec.begin());
+        erased = true;
+
+        if (ready_vec.empty()) {
+            return;
+        }
+
+    }
+    if (this->preemptive == true) {
+        process* before = ready_vec[0];
+
+        sort(ready_vec.begin(), ready_vec.end(), [](process* a, process* b) {
+
+
+            return a->getPriority() < b->getPriority();
+            });
+
+        process* after = ready_vec[0];
+        if ((before != after) && erased == false) {
+
+            before->addIntervalOfTime(start, time);
+            after->setStartTime(time);
+
+
+
+        }
+        else
+        {
+            if (erased)
+            {
+                if (!ready_vec.empty()) {
+                    sort(ready_vec.begin(), ready_vec.end(), [](process* a, process* b) {
+
+
+                        return a->getPriority() < b->getPriority();
+                        });
+
+                    ready_vec[0]->setStartTime(time);
+                }
+            }
+        }
+    }
+    else {
+        if (erased)
+        {
+            if (!ready_vec.empty()) {
+                sort(ready_vec.begin(), ready_vec.end(), [](process* a, process* b) {
+
+
+                    return a->getPriority() < b->getPriority();
+                    });
+
+                ready_vec[0]->setStartTime(time);
+            }
+        }
+
+    }
+}
 
 
 int main() {
-    process* p1 = new process("p1", 0, 3, 0);
-    process* p2 = new process("p2", 0, 4, 0);
-    // process *p3 = new process("p3", 1, 1, 0);
+    process* p1 = new process("p1", 0, 3, 3);
+    process* p2 = new process("p2", 0, 4, 2);
+    process *p3 = new process("p3", 1, 1, 1);
 
 
 
     scheduler sched;
     sched.addProcess(p1);
     sched.addProcess(p2);
+    sched.addProcess(p3);
     //sched.addProcess(p3);
     int in;
     cout << "Please Enter the Algo";
@@ -328,6 +429,10 @@ int main() {
         alg = new SJF();
         break;
     }
+	case 2: {
+		alg = new Priority();
+		break;
+	}
 	
     case 3: {
         alg = new RR();
@@ -341,7 +446,7 @@ int main() {
     alg->preemptive = preemptive;
 
 
-
+    
 
 
     sched.inProgress(*alg);
